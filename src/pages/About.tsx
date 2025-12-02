@@ -52,7 +52,7 @@ export default function About() {
   const { data } = useQuery<
     {
       id: number;
-      input_data: any; 
+      input_data: any;
       model_key: string;
       model_name: string;
       predictions: any;
@@ -91,7 +91,8 @@ export default function About() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          Rice Leaf Disease <span className="text-green-600">Predictor</span>
+          Rice Leaf Nutrient Deficiency{" "}
+          <span className="text-green-600">Prediction</span>
         </motion.h1>
 
         <motion.div
@@ -101,8 +102,8 @@ export default function About() {
         >
           <Paragraph className="text-xl text-gray-500 max-w-3xl mx-auto leading-relaxed">
             Empowering agriculture with Artificial Intelligence. Our advanced
-            system accurately diagnoses rice leaf diseases, helping farmers
-            maximize crop yields and ensure food security.
+            system accurately diagnoses rice leaf nutrient deficiencies, helping
+            farmers maximize crop yields and ensure food security.
           </Paragraph>
         </motion.div>
       </motion.div>
@@ -149,10 +150,12 @@ export default function About() {
               value={stat.value}
               precision={stat.title.includes("Accuracy") ? 1 : 0}
               suffix={stat.suffix}
-              valueStyle={{
-                color: stat.color,
-                fontWeight: "bold",
-                fontSize: "2.5rem",
+              styles={{
+                content: {
+                  color: stat.color,
+                  fontWeight: "bold",
+                  fontSize: "2.5rem",
+                },
               }}
               prefix={
                 <stat.icon
@@ -191,11 +194,7 @@ export default function About() {
               </Title>
             </div>
             <Paragraph className="text-gray-600 text-lg leading-relaxed">
-              Rice leaf diseases significantly impact crop yields and food
-              security worldwide. Early and accurate detection is crucial for
-              effective management. Our Rice Leaf Disease Predictor utilizes
-              cutting-edge AI models to identify diseases from leaf images,
-              analyzing key nutrient deficiencies in{" "}
+              Rice Leaf Nutrient Deficiency, focusing on key nutrients like{" "}
               <Text strong> Nitrogen (N) </Text>,{" "}
               <Text strong>Phosphorus (P)</Text>, and{" "}
               <Text strong>Potassium (K)</Text>.
@@ -204,8 +203,8 @@ export default function About() {
               Traditional manual identification is time-consuming and prone to
               error. Our project leverages state-of-the-art{" "}
               <Text strong>Deep Learning</Text> techniques to automate this
-              process, providing rapid and reliable disease detection from
-              simple leaf images.
+              process, providing rapid and reliable nutrient deficiency
+              detection from simple leaf images.
             </Paragraph>
           </motion.div>
 
@@ -405,7 +404,7 @@ export default function About() {
         viewport={{ once: true }}
       >
         <Alert
-          message="Disclaimer"
+          title="Disclaimer"
           description="This AI system is designed for educational and assistive purposes. While highly accurate, results should be verified by agricultural experts before taking large-scale action. We are not liable for crop losses due to misuse."
           type="warning"
           showIcon

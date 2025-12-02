@@ -55,12 +55,23 @@ export default function HistoryPage() {
     saveAs(blob, `prediction_${record.fileName}.csv`);
   };
 
+  const downloadImage = (record: PredictionRecord) => {
+    if (record.image_data) {
+      const imageBlob = new Blob(
+        [Uint8Array.from(atob(record.image_data), (c) => c.charCodeAt(0))],
+        { type: "image/jpeg" }
+      );
+      const fileNameWithoutExt = record.fileName.replace(/\.[^/.]+$/, "");
+      saveAs(imageBlob, `${fileNameWithoutExt}.jpg`);
+    }
+  };
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-3xl font-bold">History of Predictions</h2>
         <Input
-          placeholder="Search by filename, label, advice, or date..."
+          placeholder="Search by filename, label"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           allowClear
@@ -133,6 +144,11 @@ export default function HistoryPage() {
                 <Button size="small" onClick={() => exportCSV(record)}>
                   Export CSV
                 </Button>
+                {record.image_data && (
+                  <Button size="small" onClick={() => downloadImage(record)}>
+                    Download Image
+                  </Button>
+                )}
               </div>
             ),
           },
@@ -151,6 +167,11 @@ export default function HistoryPage() {
             <Button key="export" onClick={() => exportCSV(selected)}>
               Export CSV
             </Button>,
+            selected.image_data && (
+              <Button key="download" onClick={() => downloadImage(selected)}>
+                Download Image
+              </Button>
+            ),
           ]}
         >
           {selected.image_data && (

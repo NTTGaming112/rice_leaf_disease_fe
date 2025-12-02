@@ -57,7 +57,7 @@ const App: React.FC = () => {
               color="black"
               variant="Bold"
             />
-            <span>Rice Leaf Disease Predictor</span>
+            <span>Rice Leaf Nutrient Deficiency Prediction</span>
           </h1>
 
           <div className="p-2 space-y-4">
@@ -193,8 +193,8 @@ const App: React.FC = () => {
 
           <footer className="pb-6 text-center text-gray-500">
             <p>
-              &copy; {new Date().getFullYear()} Rice Leaf Disease Predictor. All rights
-              reserved.
+              &copy; {new Date().getFullYear()} Rice Leaf Nutrient Deficiency Prediction. All
+              rights reserved.
             </p>
           </footer>
         </div>
@@ -212,7 +212,7 @@ const App: React.FC = () => {
                 color="black"
                 variant="Bold"
               />
-              <span>Rice Leaf Disease Predictor</span>
+              <span>Rice Leaf Nutrient Deficiency Prediction</span>
             </h1>
 
             <Button
