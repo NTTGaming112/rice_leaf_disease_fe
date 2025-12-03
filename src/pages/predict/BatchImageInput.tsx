@@ -6,6 +6,7 @@ import {
   message,
   Modal,
   Select,
+  Slider,
   Spin,
   Table,
   Tabs,
@@ -20,7 +21,7 @@ import axios from "axios";
 import { saveAs } from "file-saver";
 import { DirectboxReceive, DocumentText } from "iconsax-react";
 import { unparse } from "papaparse";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import {
   Cell,
@@ -33,7 +34,6 @@ import {
 
 const { Dragger } = Upload;
 
-// --- Interfaces ---
 interface PredictionResult {
   fileName: string;
   label: number;
@@ -81,6 +81,10 @@ const renderCustomizedLabel = ({
 
 export default function BatchImageInput() {
   const [model, setModel] = useState<string>();
+  const [threshold, setThreshold] = useState(80);
+  const thresholdRef = useRef(80);
+  thresholdRef.current = threshold;
+
   const location = useLocation();
   const { token } = theme.useToken();
   const [messageApi, contextHolder] = message.useMessage();
@@ -169,7 +173,7 @@ export default function BatchImageInput() {
     if (location.state?.model_key) {
       setModel(location.state.model_key);
     }
-  }, [location.state?.model_key]);
+  }, [location.state]);
 
   const {
     data: models = [],
@@ -209,10 +213,13 @@ export default function BatchImageInput() {
   }, [modelsError]);
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (formData: FormData) =>
-      axios
+    mutationFn: (formData: FormData) => {
+      const thresholdValue = thresholdRef.current / 100;
+      return axios
         .post(
-          `${import.meta.env.VITE_API_BASE_URL}/predict-batch-zip/${model}`,
+          `${
+            import.meta.env.VITE_API_BASE_URL
+          }/predict-batch-zip/${model}?threshold=${thresholdValue}`,
           formData,
           {
             headers: {
@@ -220,12 +227,36 @@ export default function BatchImageInput() {
             },
           }
         )
-        .then((res) => res.data),
+        .then((res) => res.data);
+    },
     onSuccess: (data) => {
       if (Array.isArray(data)) {
-        setResults(data);
+        const CONFIDENCE_THRESHOLD = thresholdRef.current / 100;
+
+        const filteredResults = data.map((item) => {
+          if (item.confidence < CONFIDENCE_THRESHOLD) {
+            return {
+              ...item,
+              label: -1,
+              label_name: "Uncertain",
+              advice: undefined,
+            };
+          }
+          return item;
+        });
+
+        setResults(filteredResults);
         setIsModalOpen(true);
-        messageApi.success(`Processed ${data.length} images successfully!`);
+
+        const uncertainCount = filteredResults.filter(
+          (r) => r.label_name === "Uncertain"
+        ).length;
+        const successCount = filteredResults.length - uncertainCount;
+        messageApi.success(
+          `Processed ${successCount}/${data.length} images successfully! ${
+            uncertainCount > 0 ? `${uncertainCount} uncertain.` : ""
+          }`
+        );
       } else {
         messageApi.error("Invalid response format from server.");
       }
@@ -353,7 +384,7 @@ export default function BatchImageInput() {
                 children: (
                   <div className="flex flex-col items-center py-4">
                     <h3 className="text-lg font-medium mb-2 text-gray-700">
-                      Disease Distribution
+                      Distribution of Predicted Deficiency Types
                     </h3>
 
                     <div style={{ width: "100%", height: 300 }}>
@@ -417,6 +448,15 @@ export default function BatchImageInput() {
                           {stats.K}
                         </div>
                       </div>
+                      {/* Error - Gray */}
+                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="text-gray-500 text-xs uppercase">
+                          Uncertain
+                        </div>
+                        <div className="text-xl font-bold text-gray-700">
+                          {stats.error}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ),
@@ -458,6 +498,21 @@ export default function BatchImageInput() {
               Configuration
             </h3>
             <Form layout="vertical">
+              <Form.Item label={`Confidence Threshold: ${threshold}%`}>
+                <Slider
+                  min={1}
+                  max={100}
+                  onChange={(value) => setThreshold(value)}
+                  value={threshold}
+                  marks={{
+                    0: "0%",
+                    25: "25%",
+                    50: "50%",
+                    75: "75%",
+                    100: "100%",
+                  }}
+                />
+              </Form.Item>
               <Form.Item label="Select AI Model">
                 <Select
                   value={model}
@@ -564,13 +619,7 @@ export default function BatchImageInput() {
                 onClick={handlePredict}
                 loading={isPending}
                 disabled={fileList.length === 0}
-                icon={
-                  <DirectboxReceive
-                    size="20"
-                    title="Start Batch Processing"
-                    aria-label="Start Batch Processing"
-                  />
-                }
+                icon={<DirectboxReceive size="20" />}
                 className="h-12 font-medium"
                 aria-label="Start Batch Processing"
                 title="Start Batch Processing"

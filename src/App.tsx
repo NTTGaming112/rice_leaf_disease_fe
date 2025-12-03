@@ -114,7 +114,7 @@ const App: React.FC = () => {
                 </Avatar>
 
                 <div className="flex flex-col items-start ml-4">
-                  <span className="text-lg">Group 2</span>
+                  <span className="text-lg">Group 2 - ITeam</span>
                   <span className="text-gray-500 text-sm">
                     {new Date().toLocaleDateString("en-US", {
                       year: "numeric",

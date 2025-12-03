@@ -1,15 +1,23 @@
-import { useQuery } from "@tanstack/react-query";
-import { Button, Input, Modal, Table, Tag } from "antd";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button, Input, Modal, Table, Tag, message, Tooltip } from "antd";
+import {
+  EyeOutlined,
+  DownloadOutlined,
+  FileImageOutlined,
+  DeleteOutlined,
+} from "@ant-design/icons";
 import axios from "axios";
 import { saveAs } from "file-saver";
 import { unparse } from "papaparse";
 import { useState } from "react";
 
 interface PredictionRecord {
+  id: number;
   fileName: string;
   label: number;
   label_name: string;
   confidence: number;
+  threshold: number;
   probs: number[];
   advice: string;
   image_data?: string;
@@ -17,6 +25,7 @@ interface PredictionRecord {
 }
 
 export default function HistoryPage() {
+  const queryClient = useQueryClient();
   const { data, isLoading } = useQuery<PredictionRecord[]>({
     queryKey: ["history"],
     queryFn: () =>
@@ -28,6 +37,61 @@ export default function HistoryPage() {
 
   const [selected, setSelected] = useState<PredictionRecord | null>(null);
   const [searchText, setSearchText] = useState("");
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+
+  const handleDelete = (record: PredictionRecord) => {
+    Modal.confirm({
+      title: "Delete Prediction",
+      content: `Are you sure you want to delete "${record.fileName}"?`,
+      okText: "Delete",
+      okType: "danger",
+      cancelText: "Cancel",
+      onOk: async () => {
+        try {
+          await axios.delete(
+            `${import.meta.env.VITE_API_BASE_URL}/history/${record.id}`
+          );
+          message.success("Record deleted successfully");
+          queryClient.invalidateQueries({ queryKey: ["history"] });
+        } catch (error) {
+          message.error("Failed to delete record");
+          console.error(error);
+        }
+      },
+    });
+  };
+
+  const handleBatchDelete = () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning("Please select at least one record to delete");
+      return;
+    }
+
+    Modal.confirm({
+      title: "Delete Multiple Predictions",
+      content: `Are you sure you want to delete ${selectedRowKeys.length} selected record(s)?`,
+      okText: "Delete",
+      okType: "danger",
+      cancelText: "Cancel",
+      onOk: async () => {
+        try {
+          await Promise.all(
+            selectedRowKeys.map((id) =>
+              axios.delete(`${import.meta.env.VITE_API_BASE_URL}/history/${id}`)
+            )
+          );
+          message.success(
+            `Successfully deleted ${selectedRowKeys.length} record(s)`
+          );
+          setSelectedRowKeys([]);
+          queryClient.invalidateQueries({ queryKey: ["history"] });
+        } catch (error) {
+          message.error("Failed to delete some records");
+          console.error(error);
+        }
+      },
+    });
+  };
 
   const filteredData = Array.isArray(data)
     ? data.filter((record) => {
@@ -70,19 +134,36 @@ export default function HistoryPage() {
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-3xl font-bold">History of Predictions</h2>
-        <Input
-          placeholder="Search by filename, label"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          allowClear
-          style={{ width: 400 }}
-        />
+        <div className="flex gap-2">
+          <Input
+            placeholder="Search by filename, label"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            allowClear
+            style={{ width: 400 }}
+          />
+          {selectedRowKeys.length > 0 && (
+            <Button
+              danger
+              icon={<DeleteOutlined />}
+              onClick={handleBatchDelete}
+            >
+              Delete ({selectedRowKeys.length})
+            </Button>
+          )}
+        </div>
       </div>
 
       <Table
         loading={isLoading}
         dataSource={filteredData}
-        rowKey={(record) => record.fileName + record.created_at}
+        rowKey={(record) => record.id}
+        rowSelection={{
+          selectedRowKeys,
+          onChange: (newSelectedRowKeys) => {
+            setSelectedRowKeys(newSelectedRowKeys);
+          },
+        }}
         columns={[
           {
             title: "File Name",
@@ -138,17 +219,37 @@ export default function HistoryPage() {
             key: "action",
             render: (_, record) => (
               <div className="flex gap-2">
-                <Button size="small" onClick={() => setSelected(record)}>
-                  View
-                </Button>
-                <Button size="small" onClick={() => exportCSV(record)}>
-                  Export CSV
-                </Button>
+                <Tooltip title="View">
+                  <Button
+                    size="small"
+                    icon={<EyeOutlined />}
+                    onClick={() => setSelected(record)}
+                  />
+                </Tooltip>
+                <Tooltip title="Export CSV">
+                  <Button
+                    size="small"
+                    icon={<DownloadOutlined />}
+                    onClick={() => exportCSV(record)}
+                  />
+                </Tooltip>
                 {record.image_data && (
-                  <Button size="small" onClick={() => downloadImage(record)}>
-                    Download Image
-                  </Button>
+                  <Tooltip title="Download Image">
+                    <Button
+                      size="small"
+                      icon={<FileImageOutlined />}
+                      onClick={() => downloadImage(record)}
+                    />
+                  </Tooltip>
                 )}
+                <Tooltip title="Delete">
+                  <Button
+                    size="small"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => handleDelete(record)}
+                  />
+                </Tooltip>
               </div>
             ),
           },
@@ -193,6 +294,9 @@ export default function HistoryPage() {
           <p>
             <strong>Confidence:</strong>{" "}
             {(selected.confidence * 100).toFixed(2)}%
+          </p>
+          <p>
+            <strong>Threshold:</strong> {(selected.threshold * 100).toFixed(0)}%
           </p>
           <p>
             <strong>Probs (N,P,K):</strong> {selected.probs.join(", ")}

@@ -8,7 +8,9 @@ function Predict() {
 
   return (
     <div>
-      <h2 className="text-4xl font-semibold mb-8">Leaf Disease Prediction</h2>
+      <h2 className="text-4xl font-semibold mb-8">
+        Rice Leaf Nutrient Deficiency Prediction
+      </h2>
 
       <Tabs
         size="large"
