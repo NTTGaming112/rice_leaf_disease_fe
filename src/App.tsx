@@ -109,10 +109,9 @@ const App: React.FC = () => {
               />
 
               <div className="flex items-center max-lg:hidden">
-                <Avatar
-                  size={48}
-                  src="https://avatar.iran.liara.run/public/boy?username=Group 2"
-                />
+                <Avatar size={48} style={{ backgroundColor: "#1677ff" }}>
+                  G2
+                </Avatar>
 
                 <div className="flex flex-col items-start ml-4">
                   <span className="text-lg">Group 2</span>
@@ -141,18 +140,6 @@ const App: React.FC = () => {
               />
 
               <div className="flex items-center gap-4">
-                {/* <Button
-									shape='circle'
-									color='default'
-									variant='filled'
-									size='large'
-									icon={
-										<span>
-											<Brush color='black' className='size-4' />
-										</span>
-									}
-								/> */}
-
                 <Button
                   shape="circle"
                   color="default"
@@ -193,8 +180,8 @@ const App: React.FC = () => {
 
           <footer className="pb-6 text-center text-gray-500">
             <p>
-              &copy; {new Date().getFullYear()} Rice Leaf Nutrient Deficiency Prediction. All
-              rights reserved.
+              &copy; {new Date().getFullYear()} Rice Leaf Nutrient Deficiency
+              Prediction. All rights reserved.
             </p>
           </footer>
         </div>
