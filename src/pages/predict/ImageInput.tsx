@@ -23,8 +23,13 @@ export default function ImagePredict() {
   const [messageApi, contextHolder] = message.useMessage();
   const [imagePreview, setImagePreview] = useState<string>();
   const [imageFile, setImageFile] = useState<File>();
-  const [selectedModel, setSelectedModel] = useState<string>("cnn");
-  const [result, setResult] = useState<{ prediction: number; label: string; advice?: string }>();
+  const [selectedModel, setSelectedModel] = useState<string>();
+  const [result, setResult] = useState<{
+    prediction: number;
+    label: string;
+    confidence?: number;
+    advice?: string;
+  }>();
 
   useEffect(() => {
     return () => {
@@ -59,6 +64,7 @@ export default function ImagePredict() {
       setResult({
         prediction: data.label,
         label: data.label_name || "Unknown",
+        confidence: data.confidence,
         advice: data.advice,
       });
     },
@@ -81,7 +87,7 @@ export default function ImagePredict() {
       <Spin spinning={isPending} fullscreen />
 
       <h2 className="text-2xl font-semibold mb-6 text-center">
-        Rice Leaf Disease Classification
+        Rice Leaf Nutrient Deficiency Classification
       </h2>
 
       <Form
@@ -95,6 +101,7 @@ export default function ImagePredict() {
         {/* --- Select Model --- */}
         <Form.Item label="Select AI Model">
           <Select
+            placeholder="Select a model"
             value={selectedModel}
             onChange={setSelectedModel}
             loading={isModelsLoading}
@@ -173,6 +180,14 @@ export default function ImagePredict() {
                 {result.label}
               </h3>
               <p className="text-gray-600">Nutrient Deficiency Detected</p>
+              {result.confidence !== undefined && (
+                <p className="text-sm text-gray-500 mt-2">
+                  Confidence:{" "}
+                  <span className="font-semibold">
+                    {(result.confidence * 100).toFixed(2)}%
+                  </span>
+                </p>
+              )}
             </div>
             {result.advice && (
               <div>

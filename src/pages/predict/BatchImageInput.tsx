@@ -80,7 +80,7 @@ const renderCustomizedLabel = ({
 };
 
 export default function BatchImageInput() {
-  const [model, setModel] = useState<string>("cnn");
+  const [model, setModel] = useState<string>();
   const location = useLocation();
   const { token } = theme.useToken();
   const [messageApi, contextHolder] = message.useMessage();

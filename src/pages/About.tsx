@@ -119,13 +119,13 @@ export default function About() {
         {[
           {
             title: "Supported Models",
-            value: 3,
+            value: 4,
             icon: Cpu,
             color: token.colorPrimary,
           },
           {
             title: "Average Accuracy",
-            value: 98.5,
+            value: 95,
             suffix: "%",
             icon: ArrowUp,
             color: token.colorSuccess,
@@ -270,7 +270,7 @@ export default function About() {
               {[
                 {
                   title: "Multi-Model Analysis",
-                  desc: "Compare results from CNN, ViT, and Xception.",
+                  desc: "Compare results from Xception, ResNet50, EfficientNet, and MobileNet.",
                   color: "blue",
                 },
                 {
@@ -360,22 +360,28 @@ export default function About() {
         <Row gutter={[24, 24]} className="mt-8">
           {[
             {
-              name: "CNN (Custom)",
-              desc: "Optimized Convolutional Neural Network designed specifically for rice leaf texture analysis.",
+              name: "Xception",
+              desc: "Deep learning model utilizing depthwise separable convolutions for high efficiency and accuracy in nutrient deficiency detection.",
+              color: "border-purple-200",
+              bg: "bg-purple-50",
+            },
+            {
+              name: "ResNet50",
+              desc: "Residual Network with 50 layers using skip connections to enable training of very deep networks for robust feature extraction.",
               color: "border-blue-200",
               bg: "bg-blue-50",
             },
             {
-              name: "Vision Transformer (ViT)",
-              desc: "Advanced transformer architecture leveraging self-attention mechanisms to capture global image context.",
+              name: "EfficientNetB0",
+              desc: "Compound scaling model balancing network depth, width, and resolution for optimal performance and efficiency.",
               color: "border-green-200",
               bg: "bg-green-50",
             },
             {
-              name: "Xception",
-              desc: "Deep learning model utilizing depthwise separable convolutions for high efficiency and accuracy.",
-              color: "border-purple-200",
-              bg: "bg-purple-50",
+              name: "MobileNetV3",
+              desc: "Lightweight architecture optimized for mobile and edge devices, delivering fast predictions without sacrificing accuracy.",
+              color: "border-orange-200",
+              bg: "bg-orange-50",
             },
           ].map((model, index) => (
             <Col xs={24} md={8} key={index}>
