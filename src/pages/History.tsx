@@ -38,6 +38,7 @@ export default function HistoryPage() {
   const [selected, setSelected] = useState<PredictionRecord | null>(null);
   const [searchText, setSearchText] = useState("");
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [loadingImage, setLoadingImage] = useState(false);
 
   const handleDelete = (record: PredictionRecord) => {
     Modal.confirm({
@@ -119,14 +120,28 @@ export default function HistoryPage() {
     saveAs(blob, `prediction_${record.fileName}.csv`);
   };
 
-  const downloadImage = (record: PredictionRecord) => {
-    if (record.image_data) {
-      const imageBlob = new Blob(
-        [Uint8Array.from(atob(record.image_data), (c) => c.charCodeAt(0))],
-        { type: "image/jpeg" }
-      );
-      const fileNameWithoutExt = record.fileName.replace(/\.[^/.]+$/, "");
-      saveAs(imageBlob, `${fileNameWithoutExt}.jpg`);
+  const downloadImage = async (record: PredictionRecord) => {
+    try {
+      let imageData = record.image_data;
+
+      if (!imageData) {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/history/${record.id}/image`
+        );
+        imageData = response.data.image_data;
+      }
+
+      if (imageData) {
+        const imageBlob = new Blob(
+          [Uint8Array.from(atob(imageData), (c) => c.charCodeAt(0))],
+          { type: "image/jpeg" }
+        );
+        const fileNameWithoutExt = record.fileName.replace(/\.[^/.]+$/, "");
+        saveAs(imageBlob, `${fileNameWithoutExt}.jpg`);
+      }
+    } catch (error) {
+      message.error("Failed to download image");
+      console.error(error);
     }
   };
 
@@ -223,7 +238,25 @@ export default function HistoryPage() {
                   <Button
                     size="small"
                     icon={<EyeOutlined />}
-                    onClick={() => setSelected(record)}
+                    onClick={async () => {
+                      setSelected(record);
+                      if (!record.image_data) {
+                        setLoadingImage(true);
+                        try {
+                          const response = await axios.get(
+                            `${import.meta.env.VITE_API_BASE_URL}/history/${
+                              record.id
+                            }/image`
+                          );
+                          record.image_data = response.data.image_data;
+                          setSelected({ ...record });
+                        } catch (error) {
+                          console.error("Failed to load image:", error);
+                        } finally {
+                          setLoadingImage(false);
+                        }
+                      }
+                    }}
                   />
                 </Tooltip>
                 <Tooltip title="Export CSV">
@@ -233,15 +266,13 @@ export default function HistoryPage() {
                     onClick={() => exportCSV(record)}
                   />
                 </Tooltip>
-                {record.image_data && (
-                  <Tooltip title="Download Image">
-                    <Button
-                      size="small"
-                      icon={<FileImageOutlined />}
-                      onClick={() => downloadImage(record)}
-                    />
-                  </Tooltip>
-                )}
+                <Tooltip title="Download Image">
+                  <Button
+                    size="small"
+                    icon={<FileImageOutlined />}
+                    onClick={() => downloadImage(record)}
+                  />
+                </Tooltip>
                 <Tooltip title="Delete">
                   <Button
                     size="small"
@@ -268,14 +299,16 @@ export default function HistoryPage() {
             <Button key="export" onClick={() => exportCSV(selected)}>
               Export CSV
             </Button>,
-            selected.image_data && (
-              <Button key="download" onClick={() => downloadImage(selected)}>
-                Download Image
-              </Button>
-            ),
+            <Button key="download" onClick={() => downloadImage(selected)}>
+              Download Image
+            </Button>,
           ]}
         >
-          {selected.image_data && (
+          {loadingImage ? (
+            <div className="mb-4 flex justify-center">
+              <p>Loading image...</p>
+            </div>
+          ) : selected.image_data ? (
             <div className="mb-4 flex justify-center">
               <img
                 src={`data:image/jpeg;base64,${selected.image_data}`}
@@ -283,6 +316,10 @@ export default function HistoryPage() {
                 className="max-w-full h-auto rounded-lg shadow-md"
                 style={{ maxHeight: "300px" }}
               />
+            </div>
+          ) : (
+            <div className="mb-4 flex justify-center">
+              <p>Image not available</p>
             </div>
           )}
           <p>
