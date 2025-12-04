@@ -21,7 +21,7 @@ import axios from "axios";
 import { saveAs } from "file-saver";
 import { DirectboxReceive, DocumentText } from "iconsax-react";
 import { unparse } from "papaparse";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import {
   Cell,
@@ -83,7 +83,6 @@ export default function BatchImageInput() {
   const [model, setModel] = useState<string>();
   const [threshold, setThreshold] = useState(80);
   const thresholdRef = useRef(80);
-  thresholdRef.current = threshold;
 
   const location = useLocation();
   const { token } = theme.useToken();
@@ -98,76 +97,83 @@ export default function BatchImageInput() {
     advice: string;
   } | null>(null);
 
-  const handleAdviceClick = (record: PredictionResult) => {
+  const handleAdviceClick = useCallback((record: PredictionResult) => {
     if (record.advice) {
       setSelectedAdvice({ fileName: record.fileName, advice: record.advice });
       setAdviceModalOpen(true);
     }
-  };
+  }, []);
 
-  const columns: ColumnType<PredictionResult>[] = [
-    {
-      key: "fileName",
-      title: "File Name",
-      dataIndex: "fileName",
-      sorter: (a, b) => a.fileName.localeCompare(b.fileName),
-    },
-    {
-      key: "label",
-      title: "Deficiency Type",
-      dataIndex: "label",
-      render: (value, record) => {
-        if (value === -1) return <Tag color="default">Error</Tag>;
-
-        const name = record.label_name;
-        let color = "default";
-        if (name === "N") color = "blue";
-        if (name === "P") color = "purple";
-        if (name === "K") color = "orange";
-
-        return <Tag color={color}>{name}</Tag>;
+  const columns: ColumnType<PredictionResult>[] = useMemo(
+    () => [
+      {
+        key: "fileName",
+        title: "File Name",
+        dataIndex: "fileName",
+        sorter: (a, b) => a.fileName.localeCompare(b.fileName),
       },
-      filters: [
-        { text: "Nitrogen (N)", value: "N" },
-        { text: "Phosphorus (P)", value: "P" },
-        { text: "Potassium (K)", value: "K" },
-      ],
-      onFilter: (value, record) => record.label_name === value,
-    },
-    {
-      key: "confidence",
-      title: "Confidence",
-      dataIndex: "confidence",
-      render: (value) => (value ? `${(value * 100).toFixed(2)}%` : "--"),
-      sorter: (a, b) => a.confidence - b.confidence,
-    },
-    {
-      key: "advice",
-      title: "Advice",
-      dataIndex: "advice",
-      render: (text, record) => {
-        if (!text) return "-";
-        const truncated =
-          text.length > 50 ? text.substring(0, 50) + "..." : text;
-        return (
-          <span
-            className="text-green-600 text-xs cursor-pointer hover:text-green-700 hover:underline"
-            onClick={() => handleAdviceClick(record)}
-            title="Click to view full advice"
-          >
-            {truncated}
-          </span>
-        );
+      {
+        key: "label",
+        title: "Deficiency Type",
+        dataIndex: "label",
+        render: (value, record) => {
+          if (value === -1) return <Tag color="default">Error</Tag>;
+
+          const name = record.label_name;
+          let color = "default";
+          if (name === "N") color = "blue";
+          if (name === "P") color = "purple";
+          if (name === "K") color = "orange";
+
+          return <Tag color={color}>{name}</Tag>;
+        },
+        filters: [
+          { text: "Nitrogen (N)", value: "N" },
+          { text: "Phosphorus (P)", value: "P" },
+          { text: "Potassium (K)", value: "K" },
+        ],
+        onFilter: (value, record) => record.label_name === value,
       },
-    },
-    {
-      key: "error",
-      title: "Note",
-      dataIndex: "error",
-      render: (text) =>
-        text ? <span className="text-red-500 text-xs">{text}</span> : "Success",
-    },
-  ];
+      {
+        key: "confidence",
+        title: "Confidence",
+        dataIndex: "confidence",
+        render: (value) => (value ? `${(value * 100).toFixed(2)}%` : "--"),
+        sorter: (a, b) => a.confidence - b.confidence,
+      },
+      {
+        key: "advice",
+        title: "Advice",
+        dataIndex: "advice",
+        render: (text, record) => {
+          if (!text) return "-";
+          const truncated =
+            text.length > 50 ? text.substring(0, 50) + "..." : text;
+          return (
+            <span
+              className="text-green-600 text-xs cursor-pointer hover:text-green-700 hover:underline"
+              onClick={() => handleAdviceClick(record)}
+              title="Click to view full advice"
+            >
+              {truncated}
+            </span>
+          );
+        },
+      },
+      {
+        key: "error",
+        title: "Note",
+        dataIndex: "error",
+        render: (text) =>
+          text ? (
+            <span className="text-red-500 text-xs">{text}</span>
+          ) : (
+            "Success"
+          ),
+      },
+    ],
+    [handleAdviceClick]
+  );
 
   useEffect(() => {
     if (location.state?.model_key) {
@@ -276,6 +282,9 @@ export default function BatchImageInput() {
       return;
     }
 
+    // Chỉ gán threshold khi bắt đầu classify
+    thresholdRef.current = threshold;
+
     const formData = new FormData();
     formData.append("file", fileList[0].originFileObj as Blob);
     mutate(formData);
@@ -283,11 +292,21 @@ export default function BatchImageInput() {
 
   const exportCSV = () => {
     if (!results) return;
+
+    const modelNames: Record<string, string> = {
+      xception: "Xception",
+      resnet50: "ResNet50",
+      efficientnet: "EfficientNetB0",
+      mobilenet: "MobileNetV3",
+    };
+
     const cleanData = results.map(
       ({ fileName, label_name, confidence, advice, error }) => ({
         FileName: fileName,
         Label: label_name,
         Confidence: confidence,
+        Threshold: `${threshold}%`,
+        Model: model ? modelNames[model] || model : "N/A",
         Advice: advice,
         Note: error || "Success",
       })
@@ -511,6 +530,7 @@ export default function BatchImageInput() {
                     75: "75%",
                     100: "100%",
                   }}
+                  tooltip={{ open: false }}
                 />
               </Form.Item>
               <Form.Item label="Select AI Model">

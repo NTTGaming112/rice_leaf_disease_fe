@@ -24,9 +24,6 @@ export default function ImagePredict() {
   const [threshold, setThreshold] = useState(80);
   const thresholdRef = useRef(80);
   const [messageApi, contextHolder] = message.useMessage();
-
-  // Keep ref in sync with state without triggering re-renders
-  thresholdRef.current = threshold;
   const [imagePreview, setImagePreview] = useState<string>();
   const [imageFile, setImageFile] = useState<File>();
   const [selectedModel, setSelectedModel] = useState<string>();
@@ -110,6 +107,8 @@ export default function ImagePredict() {
         onFinish={() => {
           if (!imageFile)
             return messageApi.error("Please upload an image first!");
+          // Gán threshold khi nhấn classify
+          thresholdRef.current = threshold;
           mutate(imageFile);
         }}
       >
@@ -127,6 +126,7 @@ export default function ImagePredict() {
               75: "75%",
               100: "100%",
             }}
+            tooltip={{ open: false }}
           />
         </Form.Item>
 

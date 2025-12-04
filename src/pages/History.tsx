@@ -21,6 +21,7 @@ interface PredictionRecord {
   probs: number[];
   advice: string;
   image_data?: string;
+  model_key?: string;
   created_at: string;
 }
 
@@ -105,12 +106,23 @@ export default function HistoryPage() {
     : [];
 
   const exportCSV = (record: PredictionRecord) => {
+    const modelNames: Record<string, string> = {
+      xception: "Xception",
+      resnet50: "ResNet50",
+      efficientnet: "EfficientNetB0",
+      mobilenet: "MobileNetV3",
+    };
+
     const csvData = [
       {
         FileName: record.fileName,
         Label: record.label_name,
-        Confidence: record.confidence,
+        Confidence: `${(record.confidence * 100).toFixed(2)}%`,
+        Threshold: `${(record.threshold * 100).toFixed(0)}%`,
         Probs: record.probs.join(", "),
+        Model: record.model_key
+          ? modelNames[record.model_key] || record.model_key
+          : "N/A",
         Advice: record.advice,
         CreatedAt: record.created_at,
       },
@@ -211,6 +223,27 @@ export default function HistoryPage() {
             key: "confidence",
             render: (value: number) => `${(value * 100).toFixed(2)}%`,
             sorter: (a, b) => a.confidence - b.confidence,
+          },
+          {
+            title: "Model",
+            dataIndex: "model_key",
+            key: "model_key",
+            render: (value: string) => {
+              const modelNames: Record<string, string> = {
+                xception: "Xception",
+                resnet50: "ResNet50",
+                efficientnet: "EfficientNetB0",
+                mobilenet: "MobileNetV3",
+              };
+              return value ? modelNames[value] || value : "-";
+            },
+            filters: [
+              { text: "Xception", value: "xception" },
+              { text: "ResNet50", value: "resnet50" },
+              { text: "EfficientNetB0", value: "efficientnet" },
+              { text: "MobileNetV3", value: "mobilenet" },
+            ],
+            onFilter: (value, record) => record.model_key === value,
           },
           {
             title: "Created At",
@@ -338,6 +371,17 @@ export default function HistoryPage() {
           <p>
             <strong>Probs (N,P,K):</strong> {selected.probs.join(", ")}
           </p>
+          {selected.model_key && (
+            <p>
+              <strong>Model:</strong>{" "}
+              {{
+                xception: "Xception",
+                resnet50: "ResNet50",
+                efficientnet: "EfficientNetB0",
+                mobilenet: "MobileNetV3",
+              }[selected.model_key] || selected.model_key}
+            </p>
+          )}
           <p>
             <strong>Created At:</strong>{" "}
             {new Date(selected.created_at).toLocaleString("vi-VN")}
