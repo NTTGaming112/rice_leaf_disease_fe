@@ -125,7 +125,7 @@ export default function About() {
           },
           {
             title: "Average Accuracy",
-            value: 95,
+            value: 96,
             suffix: "%",
             icon: ArrowUp,
             color: token.colorSuccess,
@@ -270,7 +270,7 @@ export default function About() {
               {[
                 {
                   title: "Multi-Model Analysis",
-                  desc: "Compare results from 5 advanced models including Xception GOC, MiniXception, Xception ECA, EfficientNet, and MobileNet.",
+                  desc: "Compare results from 5 advanced models including Xception (base), MiniXception, MiniXception ECA, EfficientNet, and MobileNet.",
                   color: "blue",
                 },
                 {
@@ -360,7 +360,7 @@ export default function About() {
         <Row gutter={[24, 24]} className="mt-8">
           {[
             {
-              name: "Xception GOC",
+              name: "Xception (base)",
               desc: "State-of-the-art Xception architecture from timm library utilizing depthwise separable convolutions for exceptional accuracy.",
               color: "border-purple-200",
               bg: "bg-purple-50",
@@ -372,8 +372,8 @@ export default function About() {
               bg: "bg-blue-50",
             },
             {
-              name: "Xception ECA",
-              desc: "Enhanced Xception with Efficient Channel Attention mechanism for improved feature extraction and superior performance.",
+              name: "MiniXception ECA",
+              desc: "Enhanced MiniXception with Efficient Channel Attention mechanism for improved feature extraction and superior performance.",
               color: "border-indigo-200",
               bg: "bg-indigo-50",
             },

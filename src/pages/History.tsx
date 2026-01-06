@@ -107,10 +107,11 @@ export default function HistoryPage() {
 
   const exportCSV = (record: PredictionRecord) => {
     const modelNames: Record<string, string> = {
-      xception: "Xception",
-      resnet50: "ResNet50",
+      xception: "Xception (base)",
       efficientnet: "EfficientNetB0",
       mobilenet: "MobileNetV3",
+      minixception: "MiniXception",
+      xception_eca: "MiniXception ECA",
     };
 
     const csvData = [
@@ -230,16 +231,18 @@ export default function HistoryPage() {
             key: "model_key",
             render: (value: string) => {
               const modelNames: Record<string, string> = {
-                xception: "Xception",
-                resnet50: "ResNet50",
+                xception: "Xception (base)",
+                minixception: "MiniXception",
+                xception_eca: "MiniXception ECA",
                 efficientnet: "EfficientNetB0",
                 mobilenet: "MobileNetV3",
               };
               return value ? modelNames[value] || value : "-";
             },
             filters: [
-              { text: "Xception", value: "xception" },
-              { text: "ResNet50", value: "resnet50" },
+              { text: "Xception (base)", value: "xception" },
+              { text: "MiniXception", value: "minixception" },
+              { text: "MiniXception ECA", value: "xception_eca" },
               { text: "EfficientNetB0", value: "efficientnet" },
               { text: "MobileNetV3", value: "mobilenet" },
             ],
@@ -375,8 +378,9 @@ export default function HistoryPage() {
             <p>
               <strong>Model:</strong>{" "}
               {{
-                xception: "Xception",
-                resnet50: "ResNet50",
+                xception: "Xception (base)",
+                minixception: "MiniXception",
+                xception_eca: "MiniXception ECA",
                 efficientnet: "EfficientNetB0",
                 mobilenet: "MobileNetV3",
               }[selected.model_key] || selected.model_key}

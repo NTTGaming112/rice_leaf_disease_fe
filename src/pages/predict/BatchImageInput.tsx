@@ -294,10 +294,11 @@ export default function BatchImageInput() {
     if (!results) return;
 
     const modelNames: Record<string, string> = {
-      xception: "Xception",
-      resnet50: "ResNet50",
+      xception: "Xception (base)",
       efficientnet: "EfficientNetB0",
       mobilenet: "MobileNetV3",
+      minixception: "MiniXception",
+      xception_eca: "MiniXception ECA",
     };
 
     const cleanData = results.map(
