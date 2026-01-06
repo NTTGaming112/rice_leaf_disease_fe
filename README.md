@@ -226,4 +226,4 @@ MIT License
 
 ## 🔗 Links
 
-- Backend Repository: [(https://github.com/NTTGaming112/rice_leaf_disease_BE)]
+- Backend Repository: [Backend](https://github.com/NTTGaming112/rice_leaf_disease_BE)
