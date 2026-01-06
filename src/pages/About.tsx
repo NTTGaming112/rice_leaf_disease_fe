@@ -119,7 +119,7 @@ export default function About() {
         {[
           {
             title: "Supported Models",
-            value: 4,
+            value: 5,
             icon: Cpu,
             color: token.colorPrimary,
           },
@@ -229,7 +229,7 @@ export default function About() {
               </div>
               <div>
                 <Title level={4} className="mb-1 text-blue-800">
-                  Group 2 - CS406
+                  ITeam - CS406
                 </Title>
                 <Text className="text-gray-500 block mb-4 font-medium">
                   University of Information Technology (UIT)
@@ -270,7 +270,7 @@ export default function About() {
               {[
                 {
                   title: "Multi-Model Analysis",
-                  desc: "Compare results from Xception, ResNet50, EfficientNet, and MobileNet.",
+                  desc: "Compare results from 5 advanced models including Xception GOC, MiniXception, Xception ECA, EfficientNet, and MobileNet.",
                   color: "blue",
                 },
                 {
@@ -360,16 +360,22 @@ export default function About() {
         <Row gutter={[24, 24]} className="mt-8">
           {[
             {
-              name: "Xception",
-              desc: "Deep learning model utilizing depthwise separable convolutions for high efficiency and accuracy in nutrient deficiency detection.",
+              name: "Xception GOC",
+              desc: "State-of-the-art Xception architecture from timm library utilizing depthwise separable convolutions for exceptional accuracy.",
               color: "border-purple-200",
               bg: "bg-purple-50",
             },
             {
-              name: "ResNet50",
-              desc: "Residual Network with 50 layers using skip connections to enable training of very deep networks for robust feature extraction.",
+              name: "MiniXception",
+              desc: "Custom lightweight Xception variant optimized for faster inference while maintaining high accuracy in nutrient deficiency detection.",
               color: "border-blue-200",
               bg: "bg-blue-50",
+            },
+            {
+              name: "Xception ECA",
+              desc: "Enhanced Xception with Efficient Channel Attention mechanism for improved feature extraction and superior performance.",
+              color: "border-indigo-200",
+              bg: "bg-indigo-50",
             },
             {
               name: "EfficientNetB0",
@@ -384,7 +390,7 @@ export default function About() {
               bg: "bg-orange-50",
             },
           ].map((model, index) => (
-            <Col xs={24} md={8} key={index}>
+            <Col xs={24} md={12} lg={8} key={index}>
               <motion.div
                 whileHover={{ y: -5 }}
                 className={`h-full p-6 rounded-xl border ${model.color} ${model.bg}`}
